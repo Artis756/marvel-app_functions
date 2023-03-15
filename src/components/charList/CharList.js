@@ -1,26 +1,19 @@
 import './charList.scss';
 import { Component, useEffect, useRef, useState } from 'react';
-import MarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/spinner';
 import Error from '../error/error';
 
 import PropTypes from 'prop-types'
+import useMarvelService from '../../services/MarvelService';
 
 const CharList = ({ onCharSelected }) => {
 	const [chars, setChars] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(false);
 	const [newItemsLoading, setNewItemsLoading] = useState(false);
 	const [offset, setOffset] = useState(193);
 	const [charsEnded, setCharsEnded] = useState(false);
 
 	let itemsRefs = useRef([]);
-	const marvelService = new MarvelService();
-
-	const onCharsLoading = () => {
-		setNewItemsLoading(true);
-		setError(false);
-	}
+	const { error, loading, getAllCharacters } = useMarvelService();
 
 	const onCharsLoaded = (newChars) => {
 		let ended = false;
@@ -31,27 +24,24 @@ const CharList = ({ onCharSelected }) => {
 		setOffset(offset => offset + 9);
 		setChars(chars => [...chars, ...newChars])
 		setNewItemsLoading(false);
-		setLoading(false);
 		setCharsEnded(ended)
 
 	}
 
 	const onError = () => {
 		setNewItemsLoading(false);
-		setError(true);
-		setLoading(false);
 	}
 
-	const onRequest = () => {
-		onCharsLoading();
-		marvelService
-			.getAllCharacters(offset)
+	const onRequest = (initial) => {
+		initial ? setNewItemsLoading(false) : setNewItemsLoading(true)
+
+		getAllCharacters(offset)
 			.then(onCharsLoaded)
 			.catch(onError)
 	}
 
 	useEffect(() => {
-		onRequest();
+		onRequest(true);
 	}, [])
 
 	useEffect(() => {
@@ -79,7 +69,7 @@ const CharList = ({ onCharSelected }) => {
 					onKeyDown={(e) => keyboardHandler(e, index, item.id)}
 					tabIndex="0"
 					key={item.id}
-					ref={elem =>itemsRefs.current[index] = elem}>
+					ref={elem => itemsRefs.current[index] = elem}>
 					<img src={item.thumbnail} alt="abyss" />
 					<div className="char__name">{item.name}</div>
 				</li>
@@ -89,20 +79,19 @@ const CharList = ({ onCharSelected }) => {
 
 	const items = createItems(chars)
 
-	const loadingComponent = loading ? <Spinner /> : null;
+	const loadingComponent = loading && !newItemsLoading ? <Spinner /> : null;
 	const errorComponent = error ? <Error /> : null;
-	const content = !(loadingComponent || errorComponent) ? items : null;
 
 	return (
 		<div className="char__list">
 			{loadingComponent}
 			{errorComponent}
 			<ul className="char__grid">
-				{content}
+				{items}
 			</ul>
 			<button className="button button__main button__long"
 				disabled={newItemsLoading}
-				onClick={() => onRequest(offset)}
+				onClick={() => onRequest(false)}
 				style={{ display: charsEnded ? 'none' : 'block' }}>
 				<div className="inner">load more</div>
 			</button>

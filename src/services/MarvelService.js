@@ -1,27 +1,30 @@
-class MarvelService {
-	_apikey = '70188d3e9736e22562d84fdd1a130aeb';
-	_apiBase = 'https://gateway.marvel.com:443/v1/public/';
-	_baseOffset = 193;
+import useHttp from "../hooks/http.hook";
 
-	getData = async (url) => {
-		const response = await fetch(url);
+const useMarvelService = () => {
+	const { loading, error, request } = useHttp()
 
-		if (!response.ok) throw new Error(`Could not fetch ${url}, status: ${response.status}`);
+	const _apikey = '70188d3e9736e22562d84fdd1a130aeb';
+	const _apiBase = 'https://gateway.marvel.com:443/v1/public/';
+	const _baseOffset = 193;
+	const _comicsOffset = 598;
 
-		return await response.json()
+	const getAllCharacters = async (offset = _baseOffset) => {
+		const { data: { results } } = await request(`${_apiBase}characters?limit=9&offset=${offset}&apikey=${_apikey}`);
+
+		return results.map(item => _transformCharData(item))
 	}
 
-	getAllCharacters = async (offset = this._baseOffset) => {
-		const { data: { results } } = await this.getData(`${this._apiBase}characters?limit=9&offset=${offset}&apikey=${this._apikey}`);
+	const getCharacter = async (id) => {
+		const { data: { results } } = await request(`${_apiBase}characters/${id}?apikey=${_apikey}`);
 
-		return results.map(item => this._transformCharData(item))
+		return _transformCharData(results[0])
 	}
 
-	getCharacter = async (id) => {
-		const { data: { results } } = await this.getData(`${this._apiBase}characters/${id}?apikey=${this._apikey}`);
-		return this._transformCharData(results[0])
+	const getAllComics = async (offset = _comicsOffset) => {
+		const { data: { results } } = await request(`${_apiBase}comics?limit=8&offset=${offset}&apikey=${_apikey}`);
+		return results.map(_transformComic)
 	}
-	_transformCharData = (char) => {
+	const _transformCharData = (char) => {
 
 		return {
 			id: char.id,
@@ -34,6 +37,16 @@ class MarvelService {
 		}
 	}
 
+	const _transformComic = (comic) => {
+		console.log(comic);
+		return {
+			id: comic.id,
+			title: comic.title,
+			price: comic.prices[0].price === 0 ? 'NOT AVAILABLE': comic.prices[0].price  +'$',
+			thumbnail: `${comic.thumbnail.path}.${comic.thumbnail.extension}`
+		}
+	}
+	return { loading, error, getAllCharacters, getCharacter, getAllComics }
 }
 
-export default MarvelService;
+export default useMarvelService;
