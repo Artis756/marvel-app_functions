@@ -8,6 +8,7 @@ import Skeleton from '../skeleton/Skeleton';
 import PropTypes from 'prop-types'
 
 import useMarvelService from '../../services/MarvelService';
+import { Link } from 'react-router-dom';
 
 const CharInfo = ({ charId }) => {
 	const [char, setChar] = useState(null);
@@ -61,7 +62,7 @@ const View = ({ name, description, thumbnail, homepage, wiki, comics }) => {
 	const comicsList = comics.map((comic, index) => {
 		return (
 			<li className="char__comics-item" key={index}>
-				{comic.name}
+				<Link to={`comics/${comic.resourceURI.split('/').pop()}`}>{comic.name}</Link>
 			</li>
 		)
 	})
