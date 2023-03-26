@@ -5,6 +5,7 @@ import Error from '../error/error';
 
 import PropTypes from 'prop-types'
 import useMarvelService from '../../services/MarvelService';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 const CharList = ({ onCharSelected }) => {
 	const [chars, setChars] = useState([]);
@@ -64,15 +65,19 @@ const CharList = ({ onCharSelected }) => {
 
 		return chars.map((item, index) => {
 			return (
-				<li className="char__item"
-					onClick={() => { onCharSelected(item.id); onFocus(index) }}
-					onKeyDown={(e) => keyboardHandler(e, index, item.id)}
-					tabIndex="0"
+				<CSSTransition
 					key={item.id}
-					ref={elem => itemsRefs.current[index] = elem}>
-					<img src={item.thumbnail} alt="abyss" />
-					<div className="char__name">{item.name}</div>
-				</li>
+					timeout={1500}
+					classNames='char__item'>
+					<li className="char__item"
+						onClick={() => { onCharSelected(item.id); onFocus(index) }}
+						onKeyDown={(e) => keyboardHandler(e, index, item.id)}
+						tabIndex="0"
+						ref={elem => itemsRefs.current[index] = elem}>
+						<img src={item.thumbnail} alt="abyss" />
+						<div className="char__name">{item.name}</div>
+					</li>
+				</CSSTransition>
 			)
 		})
 	}
@@ -86,9 +91,10 @@ const CharList = ({ onCharSelected }) => {
 		<div className="char__list">
 			{loadingComponent}
 			{errorComponent}
-			<ul className="char__grid">
+			<TransitionGroup component='ul' className="char__grid">
 				{items}
-			</ul>
+			</TransitionGroup>
+
 			<button className="button button__main button__long"
 				disabled={newItemsLoading}
 				onClick={() => onRequest(false)}

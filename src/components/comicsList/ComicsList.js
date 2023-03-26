@@ -6,6 +6,7 @@ import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/spinner';
 import Error from '../error/error';
 import { Link } from 'react-router-dom';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 
 const ComicsList = () => {
@@ -37,7 +38,10 @@ const ComicsList = () => {
 		setNewComicsLoading(false);
 	}
 
-	const items = comics.map(comic => <View {...comic} key={comic.id} />)
+	const items = comics.map(comic => <CSSTransition
+		key={comic.id}
+		classNames='comics__item'
+		timeout={500}><View {...comic} /></CSSTransition>)
 
 	const loadingComponent = loading && !newComicsLoading ? <Spinner /> : null;
 	const errorComponent = error ? <Error /> : null;
@@ -46,9 +50,9 @@ const ComicsList = () => {
 		<div className="comics__list">
 			{loadingComponent}
 			{errorComponent}
-			<ul className="comics__grid">
+			<TransitionGroup className="comics__grid" component='ul'>
 				{items}
-			</ul>
+			</TransitionGroup>
 			<button className="button button__main button__long"
 				onClick={() => updateComics(false)}
 				disabled={newComicsLoading}
